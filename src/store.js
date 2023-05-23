@@ -60,7 +60,19 @@ const updateCategory = createAsyncThunk("updateCategory", async (category) => {
 const todosSlice = createSlice({
   name: "todos",
   initialState: [],
-  reducers: {},
+  reducers: {
+    TODO_CREATE: (state, action) => {
+      return [...state, action.payload];
+    },
+    TODO_DESTROY: (state, action) => {
+      return state.filter((todo) => todo.id !== action.payload.id);
+    },
+    TODO_UPDATE: (state, action) => {
+      return state.map((todo) =>
+        todo.id === action.payload.id ? action.payload : todo
+      );
+    }
+  },
   extraReducers: (builder) => {
     builder.addCase(fetchTodos.fulfilled, (state, action) => {
       return action.payload;
@@ -90,6 +102,11 @@ const categoriesSlice = createSlice({
     CATEGORY_DESTROY: (state, action) => {
       return state.filter((category) => category.id !== action.payload.id);
     },
+    CATEGORY_UPDATE: (state, action) => {
+      return state.map((category) =>
+        category.id === action.payload.id ? action.payload : category
+      );
+    }
   },
   extraReducers: (builder) => {
     builder.addCase(fetchCategories.fulfilled, (state, action) => {
@@ -118,7 +135,7 @@ const store = configureStore({
   },
 });
 
-const socketActions = { ...categoriesSlice.actions };
+const socketActions = { ...categoriesSlice.actions, ...todosSlice.actions }; // Step 6 - Edit Category - add ...todosSlice.actions
 
 export default store;
 

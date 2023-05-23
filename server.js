@@ -22,6 +22,10 @@ app.delete("/api/todos/:id", async (req, res, next) => {
     const todo = await Todo.findByPk(req.params.id);
     await todo.destroy();
     res.sendStatus(204);
+    sockets.forEach((socket) => {
+      socket.send(JSON.stringify({ type: "TODO_DESTROY", payload: todo }));
+    }
+    );
   } catch (ex) {
     next(ex);
   }
@@ -32,7 +36,7 @@ app.delete("/api/categories/:id", async (req, res, next) => {
     const category = await Category.findByPk(req.params.id);
     await category.destroy();
     res.sendStatus(204);
-    sockets.forEach((socket) => {
+    sockets.forEach((socket) => { // this is to notify all connected clients when a category is deleted
       socket.send(
         JSON.stringify({ type: "CATEGORY_DESTROY", payload: category })
       );
@@ -46,6 +50,11 @@ app.post("/api/todos", async (req, res, next) => {
   try {
     const todo = await Todo.create(req.body);
     res.send(todo);
+
+    sockets.forEach((socket) => {
+      socket.send(JSON.stringify({ type: "TODO_CREATE", payload: todo }));
+    }
+    );
   } catch (ex) {
     next(ex);
   }
@@ -58,7 +67,7 @@ app.post("/api/categories", async (req, res, next) => {
 
     sockets.forEach((socket) => {
       socket.send(
-        JSON.stringify({ type: "CATEGORY_CREATE", payload: category })
+        JSON.stringify({ type: "CATEGORY_CREATE", payload: category }) 
       );
     });
   } catch (ex) {
@@ -70,7 +79,13 @@ app.put("/api/todos/:id", async (req, res, next) => {
   try {
     const todo = await Todo.findByPk(req.params.id);
     await todo.update(req.body);
+
+    sockets.forEach((socket) => { 
+      socket.send(JSON.stringify({ type: "TODO_UPDATE", payload: todo }));
+    }
+    );
     res.send(todo);
+
   } catch (ex) {
     next(ex);
   }
